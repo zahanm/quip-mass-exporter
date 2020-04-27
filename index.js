@@ -80,15 +80,23 @@ const main = () => {
     return
   }
 
-  return fetch('https://platform.quip.com/1/users/current')
-    .then((res) => {
-      return new Promise((resolve, reject) => {
-        if (res.status !== 200) return reject(`❌ Error: ${res.statusText}`)
+  var folder_contents
+  if (process.argv[3]) {
+    const folder_id = process.argv[3]
+    folder_contents = fetchPrivateFolder(bunnies)
+  } else {
+    folder_contents = fetch('https://platform.quip.com/1/users/current')
+      .then((res) => {
+        return new Promise((resolve, reject) => {
+          if (res.status !== 200) return reject(`❌ Error: ${res.statusText}`)
 
-        resolve(res.data.private_folder_id)
+          resolve(res.data.private_folder_id)
+        })
       })
-    })
-    .then(fetchPrivateFolder)
+      .then(fetchPrivateFolder)
+  }
+
+  return folder_contents
     .then(({ data: { children } }) => children)
     .then(fetchDocs)
     .catch(logErr)
