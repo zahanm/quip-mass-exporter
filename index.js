@@ -57,11 +57,16 @@ const writeFiles = curry((folderName, { data }) => {
   forEach(data, (({ thread, html }) => {
     const file = thread.title.replace(/\//g, '')
     const fileName = `${folderName}/${file}`
+    const created = new Date(thread.created_usec / 1000)
+    const modified = new Date(thread.updated_usec / 1000)
 
     fs.writeFile(`${fileName}.html`, html, (err) => {
       if (err) return logErr(`❌ Failed to save ${fileName}.html. ${err}`)
 
-      console.log(`✅ ${fileName}.html saved successfully`)
+      // ensure that the atime, mtime are set to dates from the thread metadata
+      fs.utimes(`${fileName}.html`, modified, created, () => {
+        console.log(`✅ ${fileName}.html saved successfully`)
+      })
     })
 
     fs.writeFile(`${fileName}.md`, toMarkdown(html), (err) => {
